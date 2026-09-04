@@ -1,4 +1,4 @@
-Registro 1 - Fase 1
+Registro 1 
 * **Fecha:** 1 de septiembre
   - inicio del proyecto hoy pude iniciar con el html para el programa de hojas de calculo.
   - Creación de la estructura HTML base y estilos CSS para la interfaz del libro de trabajo.
@@ -19,3 +19,13 @@ registro 2
 * **Problemas encontrados:**
   - Al editar valores, la vista no se actualizaba automáticamente. Se resolvió invocando `renderSpreadSheet()` despues de modificar la matriz `STATE`.
   - **Pendiente:** Reemplazar el motor de prueba actual (`eval()`) por un tokenizador y evaluador por pilas propio para cumplir con las restricciones obligatorias de la práctica. Min 58:34 
+
+Registro 3
+* **Fecha:** 3 de septiembre de 2026
+* **Avances:**
+  - Implementación de `generateCellsConstants()` para mapear las coordenadas de la matriz en identificadores tipo Excel (`A1`, `B2`).
+  - Creación de la función `computedAllCells()` para actualizar en cadena el valor calculado de todas las celdas dependientes al modificar una celda origen.
+* **Problemas encontrados:**
+  - Colisión de nombres en la función `computedAllCells` al declarar una constante interna con el mismo nombre de la función de evaluación (`computedValue`). Se corrigió renombrando la variable local a `result`.
+- **Pendiente:**  
+  -Por el momento se sigue usando el (`eval()`) que debe ser cambiado.
