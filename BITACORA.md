@@ -45,3 +45,29 @@
 * **Decisiones de diseño:**
   - Se estructuró el proyecto aplicando buenas prácticas de desarrollo web para facilitar la mantenibilidad, escalabilidad del código y el cumplimiento de los estándares de organización requeridos en la evaluación de la práctica.
   - Manejo de excepciones controlado: Retorno directo de mensajes de error como `#DIV/0!` o `#REF!` sin congelar la ejecución del navegador
+
+
+  ### Registro 5
+* **Fecha:** 8 de septiembre de 2026
+* **Avances:**
+  - Implementación de la función `expandRanges()` para interpretar funciones sobre rangos de celdas (`SUMA`, `PROMEDIO`, `MAX`, `MIN`).
+  - Agregado del algoritmo recursivo `hasCircularReference()` para la detección previa de ciclos en la cadena de dependencias de fórmulas (`#CIRCULAR!`).
+  - Fortalecimiento de la captura de errores en operaciones inválidas (`#DIV/0!`, `#REF!`, `#ERROR!`).
+* **Decisiones de diseño:**
+  - Se utilizó un conjunto (`Set`) recursivo de seguimiento de rutas en el grafo de celdas para prevenir desbordamientos de pila (*stack overflow*) por referencias circulares.
+
+  ### Registro 6
+* **Fecha:** 14 de septiembre de 2026
+* **Avances:**
+  - Integración del almacenamiento local (`localStorage`) para persistir automáticamente el estado de la hoja de cálculo al recargar el navegador.
+  - Funcionalidad de exportación de la cuadrícula a archivos `.csv` compatibles con suites de ofimática externas.
+  - Implementación de resaltado condicional mediante reglas CSS para resaltar automáticamente celdas con saldos negativos y mensajes de error en rojo .
+* **Decisiones de diseño:**
+  - Se estructuró la serialización en JSON para asegurar que tanto la fórmula (`value`) como el resultado (`computedValue`) se restauren íntegramente al abrir la aplicación.
+
+
+  ### Registro 7
+* **Fecha:** 14 de septiembre de 2026
+* **Avances:**
+  - Ajuste final del layout CSS en la barra de herramientas (`.toolbar`), utilizando propiedades Flexbox (`margin-left: auto`) para mantener el logo corporativo alineado a la izquierda y el conjunto de controles (`Guardar`, `Exportar CSV`, `Limpiar Hoja`) posicionados en la esquina superior derecha.
+  - Consolidación del flujo de la aplicación web con todos los requisitos funcionales de la práctica cumplidos al 100%.
