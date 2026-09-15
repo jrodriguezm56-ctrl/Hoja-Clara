@@ -7,7 +7,7 @@ body {
     box-sizing: border-box;
 }
 
-
+/* Barra de herramientas */
 .toolbar {
     display: flex;
     align-items: center;
@@ -22,7 +22,7 @@ body {
 }
 
 #btn-save {
-    margin-left: auto; 
+    margin-left: auto; /* Empuja los botones a la derecha */
 }
 
 button {
@@ -82,6 +82,19 @@ input:focus {
     pointer-events: auto;
 }
 
+/* Manejador de arrastre en la celda */
+.fill-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    height: 4px;
+    background-color: #ccc;
+    cursor: crosshair;
+    z-index: 10;
+}
+
+/* Resaltado condicional */
 td.is-negative span, td.is-error span {
     color: #d9534f;
     font-weight: bold;

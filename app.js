@@ -1,14 +1,14 @@
 const $ = el => document.querySelector(el)
 const $$ = el => document.querySelectorAll(el)
 
-const ROWS = 10
-const COLUMNS = 5
+const ROWS = 26
+const COLUMNS = 15
 const FIRST_CHAR_CODE = 65
 
 const times = length => Array.from({ length }, (_, i) => i)
 const getColumn = i => String.fromCharCode(FIRST_CHAR_CODE + i)
 
-// Cargar estado desde localStorage o crear matriz inicial
+// Cargar estado inicial desde localStorage o crear matriz limpia
 const loadInitialState = () => {
     const saved = localStorage.getItem('hoja_clara_state')
     if (saved) {
@@ -18,6 +18,91 @@ const loadInitialState = () => {
 }
 
 let STATE = loadInitialState()
+
+// --- SISTEMA DE HISTORIAL (DESHACER / REHACER) ---
+
+const undoStack = []
+const redoStack = []
+const MAX_HISTORY = 30
+
+function saveHistory() {
+    if (undoStack.length >= MAX_HISTORY) undoStack.shift()
+    undoStack.push(structuredClone(STATE))
+    redoStack.length = 0
+}
+
+function undo() {
+    if (undoStack.length === 0) return
+    redoStack.push(structuredClone(STATE))
+    STATE = undoStack.pop()
+    computedAllCells(STATE)
+    localStorage.setItem('hoja_clara_state', JSON.stringify(STATE))
+    renderSpreadSheet()
+}
+
+function redo() {
+    if (redoStack.length === 0) return
+    undoStack.push(structuredClone(STATE))
+    STATE = redoStack.pop()
+    computedAllCells(STATE)
+    localStorage.setItem('hoja_clara_state', JSON.stringify(STATE))
+    renderSpreadSheet()
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.target.tagName === 'INPUT') return
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+        if (event.shiftKey) {
+            redo()
+        } else {
+            undo()
+        }
+        event.preventDefault()
+    } else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
+        redo()
+        event.preventDefault()
+    }
+})
+
+// --- ARRASTRE DE FÓRMULAS CON REFERENCIAS RELATIVAS ---
+
+function shiftFormulaReferences(formula, deltaX, deltaY) {
+    if (typeof formula !== 'string' || !formula.startsWith('=')) return formula
+
+    return formula.replace(/([A-Z]+)(\d+)/g, (match, colStr, rowStr) => {
+        let colIndex = colStr.charCodeAt(0) - FIRST_CHAR_CODE + deltaX
+        let rowIndex = parseInt(rowStr) + deltaY
+
+        if (colIndex < 0) colIndex = 0
+        if (colIndex >= COLUMNS) colIndex = COLUMNS - 1
+        if (rowIndex < 1) rowIndex = 1
+        if (rowIndex > ROWS) rowIndex = ROWS
+
+        const newColStr = String.fromCharCode(FIRST_CHAR_CODE + colIndex)
+        return `${newColStr}${rowIndex}`
+    })
+}
+
+function copyCellRange(sourceX, sourceY, targetX, targetY) {
+    saveHistory()
+    const newstate = structuredClone(STATE)
+    const sourceValue = newstate[sourceX][sourceY].value
+
+    const deltaX = targetX - sourceX
+    const deltaY = targetY - sourceY
+
+    const adjustedValue = typeof sourceValue === 'string' && sourceValue.startsWith('=')
+        ? shiftFormulaReferences(sourceValue, deltaX, deltaY)
+        : sourceValue
+
+    newstate[targetX][targetY].value = adjustedValue
+
+    computedAllCells(newstate)
+    STATE = newstate
+    localStorage.setItem('hoja_clara_state', JSON.stringify(STATE))
+    renderSpreadSheet()
+}
 
 // --- PARSER Y EXPANSOR DE RANGOS ---
 
@@ -160,6 +245,7 @@ function computedAllCells(cells) {
 }
 
 function updateCell({ x, y, value }) {
+    saveHistory()
     const newstate = structuredClone(STATE)
     newstate[x][y].value = value
 
@@ -198,6 +284,7 @@ const renderSpreadSheet = () => {
                 <td data-x="${column}" data-y="${row}" class="${cellClass}">
                     <span>${val}</span>
                     <input type="text" value="${cell.value}" />
+                    <div class="fill-handle" data-x="${column}" data-y="${row}"></div>
                 </td>`
             }).join('')}
         </tr>`
@@ -215,6 +302,7 @@ $('#btn-save').addEventListener('click', () => {
 
 $('#btn-clear').addEventListener('click', () => {
     if (confirm('¿Deseas borrar el contenido de la hoja?')) {
+        saveHistory()
         localStorage.removeItem('hoja_clara_state')
         STATE = times(COLUMNS).map(() => times(ROWS).map(() => ({ computedValue: '', value: '' })))
         renderSpreadSheet()
@@ -243,10 +331,40 @@ $('#btn-export').addEventListener('click', () => {
     document.body.removeChild(link)
 })
 
-// --- EVENTOS ---
+// --- EVENTOS Y DRAG & DROP ---
+
+let dragSource = null
 
 const $body = $('tbody')
+
+$body.addEventListener('mousedown', event => {
+    if (event.target.classList.contains('fill-handle')) {
+        const td = event.target.closest('td')
+        const { x, y } = td.dataset
+        dragSource = { x: parseInt(x), y: parseInt(y) }
+        event.stopPropagation()
+    }
+})
+
+$body.addEventListener('mouseup', event => {
+    if (dragSource) {
+        const td = event.target.closest('td')
+        if (td) {
+            const { x, y } = td.dataset
+            const targetX = parseInt(x)
+            const targetY = parseInt(y)
+
+            if (dragSource.x !== targetX || dragSource.y !== targetY) {
+                copyCellRange(dragSource.x, dragSource.y, targetX, targetY)
+            }
+        }
+        dragSource = null
+    }
+})
+
 $body.addEventListener('click', event => {
+    if (event.target.classList.contains('fill-handle')) return
+    
     const td = event.target.closest('td')
     if (!td) return
 
