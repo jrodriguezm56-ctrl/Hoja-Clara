@@ -2,7 +2,7 @@ const $ = el => document.querySelector(el)
 const $$ = el => document.querySelectorAll(el)
 
 const ROWS = 26
-const COLUMNS = 15
+const COLUMNS = 26
 const FIRST_CHAR_CODE = 65
 
 const times = length => Array.from({ length }, (_, i) => i)
